@@ -617,3 +617,32 @@ def test_emptying_trash_keeps_the_private_items_of_other_users(data_fixture):
     assert dict(
         TrashEntry.objects.values_list("trash_item_id", "should_be_permanently_deleted")
     ) == {shared.id: True, private.id: False}
+
+
+@pytest.mark.django_db
+def test_deleting_user_deletes_private_trash_entries_and_does_not_expose_to_others(
+    data_fixture,
+):
+    user_a = data_fixture.create_user()
+    user_b = data_fixture.create_user()
+    workspace = data_fixture.create_workspace(users=[user_a, user_b])
+    shared = data_fixture.create_database_application(workspace=workspace)
+    private = data_fixture.create_database_application(workspace=workspace)
+
+    TrashHandler.trash(user_a, workspace, shared, shared)
+    TrashHandler.trash(user_a, workspace, private, private)
+    TrashEntry.objects.filter(trash_item_id=private.id).update(trash_item_owner=user_a)
+
+    user_b_trash_before = TrashHandler.get_trash_contents(user_b, workspace.id, None)
+    assert list(user_b_trash_before.values_list("trash_item_id", flat=True)) == [
+        shared.id
+    ]
+
+    user_a.delete()
+
+    assert not TrashEntry.objects.filter(trash_item_id=private.id).exists()
+
+    user_b_trash_after = TrashHandler.get_trash_contents(user_b, workspace.id, None)
+    assert list(user_b_trash_after.values_list("trash_item_id", flat=True)) == [
+        shared.id
+    ]

@@ -1221,7 +1221,7 @@ class TrashEntry(models.Model):
 
     trash_item_owner = models.ForeignKey(
         User,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
         related_name="private_trash_entries",
     )

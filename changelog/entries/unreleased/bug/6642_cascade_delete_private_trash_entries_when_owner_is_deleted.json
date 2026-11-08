@@ -1,0 +1,9 @@
+{
+    "type": "bug",
+    "message": "Cascade delete private trash entries when their owner is deleted",
+    "issue_origin": "github",
+    "issue_number": 6642,
+    "domain": "core",
+    "bullet_points": [],
+    "created_at": "2026-11-08"
+}
